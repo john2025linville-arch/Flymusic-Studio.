@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flymusic Studio - AI Music & Voice Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 430px;
+            height: 100vh;
+            max-height: 932px;
+            background: #000205;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 210, 255, 0.15);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+        }
+        @media(min-width: 431px) {
+            .app-container {
+                border-radius: 40px;
+            }
+        }
+        /* Top Header */
+        .app-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 2, 5, 0.9);
+            backdrop-filter: blur(16px);
+            z-index: 10;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff 30%, #00d2ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-title p {
+            font-size: 13px;
+            color: #8fa3b8;
+            margin-top: 2px;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Scrollable Content Area */
+        .content-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 100px 16px;
+            scroll-behavior: smooth;
+        }
+        .content-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Search Bar */
+        .search-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            border-radius: 28px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            width: 100%;
+        }
+        .search-box input::placeholder {
+            color: #5a738a;
+        }
+
+        /* Glass Neon Banner Cards */
+        .banner-card {
+            background: linear-gradient(135deg, rgba(0, 210, 255, 0.15) 0%, rgba(58, 123, 213, 0.15) 100%);
+            border: 1px solid rgba(0, 210, 255, 0.4);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 22px;
+            margin-bottom: 14px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s;
+            box-shadow: 0 8px 32px rgba(0, 210, 255, 0.1);
+        }
+        .banner-card:active { transform: scale(0.98); }
+        .banner-card.purple { 
+            background: linear-gradient(135deg, rgba(178, 36, 239, 0.15) 0%, rgba(117, 121, 255, 0.15) 100%);
+            border-color: rgba(178, 36, 239, 0.4);
+            box-shadow: 0 8px 32px rgba(178, 36, 239, 0.1);
+        }
+        .banner-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0,210,255,0.5);
+        }
+        .banner-card p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.4;
+        }
+
+        /* Section Headers */
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 24px 0 12px 4px;
+            color: #00d2ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(0,210,255,0.4);
+        }
+
+        /* Grid Cards with Glassmorphism */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .tool-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 115px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .tool-card:active { background: rgba(255,255,255,0.06); transform: scale(0.97); }
+        .tool-card .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.5);
+        }
+        .tool-card h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .tool-card.blue .icon { background: rgba(0, 210, 255, 0.15); color: #00d2ff; border: 1px solid rgba(0,210,255,0.3); }
+        .tool-card.orange .icon { background: rgba(242, 153, 74, 0.15); color: #f2994a; border: 1px solid rgba(242,153,74,0.3); }
+        .tool-card.green .icon { background: rgba(56, 239, 125, 0.15); color: #38ef7d; border: 1px solid rgba(56,239,125,0.3); }
+        .tool-card.purple .icon { background: rgba(178, 36, 239, 0.15); color: #b224ef; border: 1px solid rgba(178,36,239,0.3); }
+        .tool-card.pink .icon { background: rgba(255, 75, 140, 0.15); color: #ff4b8c; border: 1px solid rgba(255,75,140,0.3); }
+        .tool-card.teal .icon { background: rgba(0, 198, 255, 0.15); color: #00c6ff; border: 1px solid rgba(0,198,255,0.3); }
+
+        /* View Panels */
+        .view-panel {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+        .view-panel.active { display: flex; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .input-card label {
+            font-size: 13px;
+            color: #00d2ff;
+            font-weight: 600;
+        }
+        .input-card textarea, .input-card input[type="text"] {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 210, 255, 0.25);
+            border-radius: 14px;
+            padding: 12px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            resize: none;
+            width: 100%;
+        }
+        .input-card textarea { height: 100px; }
+
+        .select-btn-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .select-btn-box span { font-weight: 600; font-size: 14px; color: #fff; }
+        .select-btn-box small { color: #00d2ff; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .options-row {
+            display: flex;
+            gap: 10px;
+        }
+        .chip-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px;
+            border-radius: 14px;
+            color: #8fa3b8;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .chip-btn.active {
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            color: #000;
+            border-color: #00d2ff;
+            box-shadow: 0 0 15px rgba(0,210,255,0.4);
+            font-weight: 700;
+        }
+
+        .action-main-btn {
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            color: #000;
+            border: none;
+            border-radius: 28px;
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 4px 25px rgba(0, 210, 255, 0.4);
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+        .action-main-btn:active { transform: scale(0.98); }
+
+        /* Recorder Box */
+        .recorder-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px dashed rgba(0, 210, 255, 0.4);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .rec-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(255, 75, 140, 0.15);
+            color: #ff4b8c;
+            border: 2px solid #ff4b8c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 0 15px rgba(255,75,140,0.3);
+        }
+        .rec-circle.recording {
+            background: #ff4b8c;
+            color: #fff;
+            animation: pulse 1.2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 75, 140, 0.8); }
+            70% { box-shadow: 0 0 0 18px rgba(255, 75, 140, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 75, 140, 0); }
+        }
+
+        /* Library List items */
+        .library-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .library-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 3px; color: #fff; }
+        .library-info p { font-size: 12px; color: #00d2ff; }
+        .library-actions { display: flex; gap: 8px; }
+        .icon-btn {
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            color: #00d2ff;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Bottom Music Player Bar */
+        .player-bar {
+            position: absolute;
+            bottom: 70px;
+            left: 12px;
+            right: 12px;
+            background: rgba(0, 5, 12, 0.9);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            border-radius: 20px;
+            padding: 12px 16px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 99;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .player-bar.active { display: flex; }
+        .player-meta h5 { font-size: 14px; font-weight: 600; color: #fff; }
+        .player-meta p { font-size: 11px; color: #00d2ff; }
+        .player-controls { display: flex; align-items: center; gap: 12px; }
+
+        /* Bottom Navigation Bar */
+        .nav-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(0, 2, 5, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+        .nav-item {
+            background: transparent;
+            border: none;
+            color: #5a738a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .nav-item.active { color: #00d2ff; text-shadow: 0 0 10px rgba(0,210,255,0.6); }
+        .nav-item svg { width: 22px; height: 22px; fill: currentColor; }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: flex-end;
+            z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: #000810;
+            width: 100%;
+            max-height: 80vh;
+            border-radius: 28px 28px 0 0;
+            border-top: 1px solid rgba(0, 210, 255, 0.3);
+            padding: 24px 20px 40px 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .model-option {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 14px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .model-option:hover { border-color: #00d2ff; background: rgba(0,210,255,0.05); }
+
+        /* Notification Toast */
+        .toast {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-60px);
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 13px;
+            transition: transform 0.3s ease;
+            z-index: 2000;
+            box-shadow: 0 4px 20px rgba(0,210,255,0.5);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div id="toast" class="toast">Saved to /music/Flymusic as MP3!</div>
+
+    <!-- TOP HEADER -->
+    <div class="app-header">
+        <div class="header-title" id="headerTitle">
+            <h1 id="mainHeaderHeading">Create</h1>
+            <p id="mainHeaderSub">Make songs and run audio tools.</p>
+        </div>
+        <button class="back-btn" id="backBtn" style="display:none;" onclick="goHome()">✕</button>
+    </div>
+
+    <!-- SCROLLABLE CONTAINER -->
+    <div class="content-scroll" id="contentScroll">
+
+        <!---------------- HOME / CREATE VIEW ---------------->
+        <div id="viewHome" class="view-panel active">
+            <div class="search-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00d2ff" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" placeholder="Search tools or prompt sound..." onfocus="openView('search')">
+            </div>
+
+            <div class="banner-card" onclick="openView('createSong')">
+                <h3>Create a Song</h3>
+                <p>Full song with lyrics, vocals & instrumental</p>
+            </div>
+            <div class="banner-card purple" onclick="openView('releaseMusic')">
+                <h3>Release your music</h3>
+                <p>Send a song to Spotify, Apple Music and more</p>
+            </div>
+
+            <div class="section-title">⚡ Make Music</div>
+            <div class="tools-grid">
+                <div class="tool-card blue" onclick="openView('assistant')">
+                    <div class="icon">🤖</div>
+                    <h4>Vai Assistant</h4>
+                </div>
+                <div class="tool-card orange" onclick="openView('coverRemix')">
+                    <div class="icon">💿</div>
+                    <h4>Cover / Remix</h4>
+                </div>
+                <div class="tool-card green" onclick="openView('extendSong')">
+                    <div class="icon">⏩</div>
+                    <h4>Extend Song</h4>
+                </div>
+                <div class="tool-card purple" onclick="openView('addInstrumental')">
+                    <div class="icon">🎹</div>
+                    <h4>Add Instrumental</h4>
+                </div>
+                <div class="tool-card teal" onclick="openView('mashup')">
+                    <div class="icon">🔀</div>
+                    <h4>Mashup</h4>
+                </div>
+                <div class="tool-card pink" onclick="openView('soundGenerator')">
+                    <div class="icon">🌊</div>
+                    <h4>Sound Generator</h4>
+                </div>
+            </div>
+
+            <div class="section-title">🎤 Vocals & Voice Clone</div>
+            <div class="tools-grid">
+                <div class="tool-card pink" onclick="openView('createVocals')">
+                    <div class="icon">🎙️</div>
+                    <h4>Create Vocals</h4>
+                </div>
+                <div class="tool-card blue" onclick="openView('addVocals')">
+                    <div class="icon">🗣️</div>
+                    <h4>Add Vocals</h4>
+                </div>
+                <div class="tool-card purple" onclick="openView('voiceClone')">
+                    <div class="icon">🧬</div>
+                    <h4>Voice Clone Studio</h4>
+                </div>
+                <div class="tool-card teal" onclick="openView('transformVocals')">
+                    <div class="icon">🔄</div>
+                    <h4>Transform Vocals</h4>
+                </div>
+            </div>
+
+            <div class="section-title">🛠️ Toolbox</div>
+            <div class="tools-grid">
+                <div class="tool-card orange" onclick="openView('stemSplitter')">
+                    <div class="icon">✂️</div>
+                    <h4>Stem Splitter</h4>
+                </div>
+                <div class="tool-card green" onclick="openView('lyricsGenerator')">
+                    <div class="icon">📝</div>
+                    <h4>Lyrics Generator</h4>
+                </div>
+                <div class="tool-card blue" onclick="openView('coverArt')">
+                    <div class="icon">🖼️</div>
+                    <h4>Cover Art</h4>
+                </div>
+                <div class="tool-card pink" onclick="openView('audioMastering')">
+                    <div class="icon">🎚️</div>
+                    <h4>Audio Mastering</h4>
+                </div>
+            </div>
+        </div>
+
+        <!---------------- CREATE SONG VIEW ---------------->
+        <div id="viewCreateSong" class="view-panel">
+            <div class="select-btn-box" onclick="openModelSelector()">
+                <div>
+                    <small>MODEL</small>
+                    <span id="selectedModelName">Vocuno Classic</span>
+                </div>
+                <span style="color:#00d2ff;">▼</span>
+            </div>
+            <div class="input-card">
+                <label>Song description</label>
+                <textarea id="songPrompt" placeholder="e.g. Glam rock anthem about a wild futuristic band..."></textarea>
+            </div>
+            <button class="action-main-btn" onclick="generateAndSave('Song')">♪ Generate Song (Free AI)</button>
+        </div>
+
+        <!---------------- VOICE CLONE STUDIO VIEW ---------------->
+        <div id="viewVoiceClone" class="view-panel">
+            <div class="input-card">
+                <label>1. Record or Upload Your Voice Clip</label>
+                <div class="recorder-box">
+                    <div class="rec-circle" id="recBtn" onclick="toggleRecord()">🎙️</div>
+                    <span id="recStatus" style="font-size:13px; color:#8fa3b8;">Tap to record voice sample (live mic)</span>
+                    <input type="file" id="audioUpload" accept="audio/*" style="font-size:12px; margin-top:8px; color:#00d2ff;" onchange="handleAudioUpload(event)">
+                </div>
+            </div>
+            <div class="input-card">
+                <label>2. Target Song / Instrumental for Voiceover</label>
+                <input type="text" id="cloneTargetSong" placeholder="e.g. My Drill Beat #1">
+            </div>
+            <div class="input-card">
+                <label>3. Lyrics / Script for Voice Clone</label>
+                <textarea id="cloneLyrics" placeholder="Type your lyrics for the voiceover..."></textarea>
+            </div>
+            <button class="action-main-btn" onclick="generateAndSave('Voice Clone Track')">🧬 Run AI Voice Clone & Save MP3</button>
+        </div>
+
+        <!---------------- CREATE VOCALS VIEW ---------------->
+        <div id="viewCreateVocals" class="view-panel">
+            <div class="input-card">
+                <label>Vocal Style</label>
+                <input type="text" id="vocalStyle" placeholder="e.g. Melodic rap, emotional female vocals">
+            </div>
+            <div class="input-card">
+                <label>Lyrics</label>
+                <textarea id="vocalLyrics" placeholder="[Verse 1] Your lyrics here..."></textarea>
+            </div>
+            <div class="options-row">
+                <div class="chip-btn active" id="genderFemale" onclick="setGender('Female')">Female</div>
+                <div class="chip-btn" id="genderMale" onclick="setGender('Male')">Male</div>
+            </div>
+            <button class="action-main-btn" onclick="generateAndSave('Vocals')">🎙️ Create Vocals</button>
+        </div>
+
+        <!---------------- STEM SPLITTER VIEW ---------------->
+        <div id="viewStemSplitter" class="view-panel">
+            <div class="select-btn-box">
+                <div>
+                    <small>ENGINE</small>
+                    <span>LALAL.AI / Demucs 4-Stem</span>
+                </div>
+            </div>
+            <div class="input-card" style="text-align:center; padding: 30px;">
+                <p style="color:#8fa3b8; font-size:14px; margin-bottom:12px;">Upload any song to split into Vocals, Bass, Drums & Instruments</p>
+                <input type="file" accept="audio/*" onchange="generateAndSave('Stems')" style="font-size:13px; color:#00d2ff;">
+            </div>
+        </div>
+
+        <!---------------- COVER ART VIEW ---------------->
+        <div id="viewCoverArt" class="view-panel">
+            <div class="input-card">
+                <label>Describe your artwork</label>
+                <textarea placeholder="e.g. Dark gothic demon skull with gold roses..."></textarea>
+            </div>
+            <button class="action-main-btn" onclick="showToast('Cover Art Generated!')">🖼️ Generate Artwork</button>
+        </div>
+
+        <!---------------- LIBRARY VIEW ---------------->
+        <div id="viewLibrary" class="view-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="font-size:16px; font-weight:600; color:#00d2ff;">Saved in /music/Flymusic/</h3>
+                <span style="font-size:12px; color:#8fa3b8;" id="fileCount">0 files (.mp3)</span>
+            </div>
+            <div id="libraryList">
+                <!-- Dynamically populated files -->
+            </div>
+        </div>
+
+        <!---------------- PROFILE / SETTINGS VIEW ---------------->
+        <div id="viewProfile" class="view-panel">
+            <div class="input-card" style="align-items:center; text-align:center; padding:24px;">
+                <div style="width:72px; height:72px; background:linear-gradient(135deg,#00d2ff,#3a7bd5); color:#000; border-radius:50%; font-size:28px; display:flex; align-items:center; justify-content:center; font-weight:700; margin-bottom:12px; box-shadow:0 0 20px rgba(0,210,255,0.4);">JL</div>
+                <h3 style="font-size:18px; margin-bottom:4px;">John Linville</h3>
+                <p style="font-size:13px; color:#8fa3b8;">john2025linville@gmail.com</p>
+                <p style="font-size:12px; color:#00d2ff; margin-top:8px;">📁 Android Storage: /storage/emulated/0/music/Flymusic/</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- IN-APP MUSIC PLAYER BAR -->
+    <div class="player-bar" id="playerBar">
+        <div class="player-meta">
+            <h5 id="nowPlayingTitle">Song Title</h5>
+            <p id="nowPlayingSub">/music/Flymusic/file.mp3</p>
+        </div>
+        <div class="player-controls">
+            <button class="icon-btn" onclick="togglePlayPause()" id="playPauseBtn">⏸</button>
+            <button class="icon-btn" onclick="stopPlayer()">✕</button>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <div class="nav-bar">
+        <button class="nav-item active" id="navHome" onclick="switchNav('home')">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>Create</span>
+        </button>
+        <button class="nav-item" id="navLibrary" onclick="switchNav('library')">
+            <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0-2-.9-2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+            <span>Library</span>
+        </button>
+        <button class="nav-item" id="navProfile" onclick="switchNav('profile')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+            <span>Profile</span>
+        </button>
+    </div>
+
+    <!-- MODEL SELECTOR MODAL -->
+    <div class="modal-overlay" id="modelModal" onclick="closeModelSelector(event)">
+        <div class="modal-content">
+            <h3 style="font-size:18px; margin-bottom:8px; color:#00d2ff;">Select AI Model</h3>
+            <div class="model-option" onclick="selectModel('Vocuno Classic')"><span>Vocuno Classic</span><small style="color:#00d2ff;">Signature full-song</small></div>
+            <div class="model-option" onclick="selectModel('Vocuno Studio')"><span>Vocuno Studio</span><small style="color:#00d2ff;">High fidelity pipeline</small></div>
+            <div class="model-option" onclick="selectModel('ElevenLabs')"><span>ElevenLabs</span><small style="color:#00d2ff;">Expressive vocals</small></div>
+            <div class="model-option" onclick="selectModel('Mureka V9')"><span>Mureka V9</span><small style="color:#00d2ff;">Rich production</small></div>
+            <div class="model-option" onclick="selectModel('MiniMax')"><span>MiniMax</span><small style="color:#00d2ff;">Fast modern drafts</small></div>
+            <div class="model-option" onclick="selectModel('Lyria')"><span>Lyria</span><small style="color:#00d2ff;">Google high quality</small></div>
+            <div class="model-option" onclick="selectModel('MusicGPT')"><span>MusicGPT</span><small style="color:#00d2ff;">Simple creative</small></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let currentAudio = null;
+    let isRecording = false;
+    let selectedGender = 'Female';
+    let libraryFiles = [
+        { name: "Flymusic_Anthem_01.mp3", type: "Song", date: "2026-10-15" },
+        { name: "VoiceClone_Session.mp3", type: "Voice Clone", date: "2026-10-15" }
+    ];
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function switchNav(tab) {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active'));
+        document.getElementById('backBtn').style.display = 'none';
+
+        if(tab === 'home') {
+            document.getElementById('navHome').classList.add('active');
+            document.getElementById('viewHome').classList.add('active');
+            document.getElementById('mainHeaderHeading').innerText = 'Create';
+            document.getElementById('mainHeaderSub').innerText = 'Make songs and run audio tools.';
+        } else if(tab === 'library') {
+            document.getElementById('navLibrary').classList.add('active');
+            document.getElementById('viewLibrary').classList.add('active');
+            document.getElementById('mainHeaderHeading').innerText = 'Library';
+            document.getElementById('mainHeaderSub').innerText = 'Saved in /music/Flymusic';
+            renderLibrary();
+        } else if(tab === 'profile') {
+            document.getElementById('navProfile').classList.add('active');
+            document.getElementById('viewProfile').classList.add('active');
+            document.getElementById('mainHeaderHeading').innerText = 'Profile';
+            document.getElementById('mainHeaderSub').innerText = 'Account & Storage';
+        }
+    }
+
+    function openView(viewName) {
+        document.querySelectorAll('.view-panel').forEach(v => v.classList.remove('active'));
+        document.getElementById('backBtn').style.display = 'flex';
+        
+        const titles = {
+            createSong: ['Create a Song', 'Generate full track with AI'],
+            voiceClone: ['Voice Clone Studio', 'Record or upload voiceover clips'],
+            createVocals: ['Create Vocals', 'Generate AI vocal tracks'],
+            stemSplitter: ['Stem Splitter', 'Extract vocals and instruments'],
+            coverArt: ['Cover Art', 'Generate artwork for releases'],
+            addInstrumental: ['Add Instrumental', 'Turn melody into full backing band'],
+            coverRemix: ['Cover / Remix', 'Reimagine tracks in new styles'],
+            extendSong: ['Extend Song', 'Grow your tracks seamlessly'],
+            mashup: ['Mashup', 'Blend two tracks together'],
+            soundGenerator: ['Sound Generator', 'Create loops and sound effects'],
+            addVocals: ['Add Vocals', 'Add AI vocals over instrumentals'],
+            transformVocals: ['Transform Vocals', 'Studio quality vocal enhancement'],
+            audioMastering: ['Audio Mastering', 'Professional polish & cleanup'],
+            search: ['Search Tools', 'Find any audio feature']
+        };
+
+        if(titles[viewName]) {
+            document.getElementById('mainHeaderHeading').innerText = titles[viewName][0];
+            document.getElementById('mainHeaderSub').innerText = titles[viewName][1];
+        }
+        
+        const el = document.getElementById('view' + viewName.charAt(0).toUpperCase() + viewName.slice(1));
+        if(el) el.classList.add('active');
+    }
+
+    function goHome() {
+        switchNav('home');
+    }
+
+    function openModelSelector() {
+        document.getElementById('modelModal').classList.add('active');
+    }
+    function closeModelSelector(e) {
+        if(e.target.id === 'modelModal') document.getElementById('modelModal').classList.remove('active');
+    }
+    function selectModel(name) {
+        document.getElementById('selectedModelName').innerText = name;
+        document.getElementById('modelModal').classList.remove('active');
+        showToast('Model switched to ' + name);
+    }
+
+    function setGender(g) {
+        selectedGender = g;
+        if(g === 'Female') {
+            document.getElementById('genderFemale').classList.add('active');
+            document.getElementById('genderMale').classList.remove('active');
+        } else {
+            document.getElementById('genderMale').classList.add('active');
+            document.getElementById('genderFemale').classList.remove('active');
+        }
+    }
+
+    function toggleRecord() {
+        isRecording = !isRecording;
+        const btn = document.getElementById('recBtn');
+        const status = document.getElementById('recStatus');
+        if(isRecording) {
+            btn.classList.add('recording');
+            status.innerText = "Recording live voice sample... Tap to stop.";
+            showToast("Recording started");
+        } else {
+            btn.classList.remove('recording');
+            status.innerText = "Voice sample recorded successfully! Ready to clone.";
+            showToast("Voice sample captured!");
+        }
+    }
+
+    function handleAudioUpload(event) {
+        const file = event.target.files[0];
+        if(file) {
+            showToast("Uploaded voice clip: " + file.name);
+            document.getElementById('recStatus').innerText = "Loaded: " + file.name;
+        }
+    }
+
+    function generateAndSave(type) {
+        const filename = "Flymusic_" + type.replace(/\s+/g, '_') + "_" + Math.floor(Math.random()*900+100) + ".mp3";
+        libraryFiles.unshift({ name: filename, type: type, date: new Date().toISOString().split('T')[0] });
+        showToast("Saved to /music/Flymusic/" + filename);
+        setTimeout(() => {
+            switchNav('library');
+        }, 1200);
+    }
+
+    function renderLibrary() {
+        const list = document.getElementById('libraryList');
+        document.getElementById('fileCount').innerText = libraryFiles.length + " files (.mp3)";
+        list.innerHTML = "";
+        libraryFiles.forEach((file, index) => {
+            list.innerHTML += `
+                <div class="library-item">
+                    <div class="library-info">
+                        <h4>${file.name}</h4>
+                        <p>${file.type} • /music/Flymusic/</p>
+                    </div>
+                    <div class="library-actions">
+                        <button class="icon-btn" onclick="playTrack('${file.name}')">▶</button>
+                        <button class="icon-btn" onclick="downloadTrack('${file.name}')">⬇</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function playTrack(filename) {
+        const bar = document.getElementById('playerBar');
+        document.getElementById('nowPlayingTitle').innerText = filename;
+        document.getElementById('nowPlayingSub').innerText = "/music/Flymusic/" + filename;
+        bar.classList.add('active');
+        showToast("Playing from /music/Flymusic/");
+    }
+
+    function togglePlayPause() {
+        const btn = document.getElementById('playPauseBtn');
+        btn.innerText = btn.innerText === '⏸' ? '▶' : '⏸';
+    }
+
+    function stopPlayer() {
+        document.getElementById('playerBar').classList.remove('active');
+    }
+
+    function downloadTrack(filename) {
+        showToast("Downloaded " + filename + " to Android device");
+    }
+</script>
+
+</body>
+</html>
